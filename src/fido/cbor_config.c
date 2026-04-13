@@ -37,8 +37,9 @@ int cbor_config(const uint8_t *data, size_t len) {
     CborError error = CborNoError;
     uint64_t subcommand = 0, pinUvAuthProtocol = 0, vendorCommandId = 0, newMinPinLength = 0, vendorParamInt = 0;
     CborByteString pinUvAuthParam = { 0 }, vendorParamByteString = { 0 };
+    CborByteString vendorEaCerts[2] = { 0 };
     CborCharString minPinLengthRPIDs[32] = { 0 }, vendorParamTextString = { 0 };
-    size_t resp_size = 0, raw_subpara_len = 0, minPinLengthRPIDs_len = 0;
+    size_t resp_size = 0, raw_subpara_len = 0, minPinLengthRPIDs_len = 0, vendorEaCertsLen = 0;
     CborEncoder encoder;
     //CborEncoder mapEncoder;
     uint8_t *raw_subpara = NULL;
@@ -71,7 +72,20 @@ int cbor_config(const uint8_t *data, size_t len) {
                         CBOR_FIELD_GET_UINT(vendorCommandId, 2);
                     }
                     else if (subpara == 0x02) {
-                        CBOR_FIELD_GET_BYTES(vendorParamByteString, 2);
+                        if (cbor_value_is_array(&_f2) == true) {
+                            CBOR_PARSE_ARRAY_START(_f2, 3)
+                            {
+                                if (vendorEaCertsLen >= 2) {
+                                    CBOR_ERROR(CTAP2_ERR_LIMIT_EXCEEDED);
+                                }
+                                CBOR_FIELD_GET_BYTES(vendorEaCerts[vendorEaCertsLen], 3);
+                                vendorEaCertsLen++;
+                            }
+                            CBOR_PARSE_ARRAY_END(_f2, 3);
+                        }
+                        else {
+                            CBOR_FIELD_GET_BYTES(vendorParamByteString, 2);
+                        }
                     }
                     else if (subpara == 0x03) {
                         CBOR_FIELD_GET_UINT(vendorParamInt, 2);
@@ -184,13 +198,19 @@ int cbor_config(const uint8_t *data, size_t len) {
             low_flash_available();
         }
         else if (vendorCommandId == CTAP_CONFIG_EA_UPLOAD) {
-            if (vendorParamByteString.present == false) {
+            if (vendorEaCertsLen != 2 || vendorEaCerts[0].present == false || vendorEaCerts[1].present == false || vendorEaCerts[0].len == 0 || vendorEaCerts[1].len == 0) {
                 CBOR_ERROR(CTAP2_ERR_MISSING_PARAMETER);
             }
             file_t *ef_ee_ea = search_by_fid(EF_EE_DEV_EA, NULL, SPECIFY_EF);
-            if (ef_ee_ea) {
-                file_put_data(ef_ee_ea, vendorParamByteString.data, (uint16_t)vendorParamByteString.len);
+            file_t *ef_ee_ea_2 = search_by_fid(EF_EE_DEV_EA_2, NULL, SPECIFY_EF);
+            if (!ef_ee_ea_2) {
+                ef_ee_ea_2 = file_new(EF_EE_DEV_EA_2);
             }
+            if (!ef_ee_ea || !ef_ee_ea_2) {
+                CBOR_ERROR(CTAP2_ERR_PROCESSING);
+            }
+            file_put_data(ef_ee_ea, vendorEaCerts[0].data, (uint16_t)vendorEaCerts[0].len);
+            file_put_data(ef_ee_ea_2, vendorEaCerts[1].data, (uint16_t)vendorEaCerts[1].len);
             low_flash_available();
         }
         else if (vendorCommandId == CTAP_CONFIG_PIN_POLICY) {

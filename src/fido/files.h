@@ -20,10 +20,11 @@
 
 #include "file.h"
 
-#define EF_KEY_DEV      0xCC00
-#define EF_KEY_DEV_ENC  0xCC01
+#define EF_EE_DEV_EA_2  0xD100
 #define EF_EE_DEV       0xCE00
 #define EF_EE_DEV_EA    0xCE01
+#define EF_KEY_DEV      0xCC00
+#define EF_KEY_DEV_ENC  0xCC01
 #define EF_COUNTER      0xC000
 #define EF_OPTS         0xC001
 #define EF_PIN          0x1080

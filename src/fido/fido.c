@@ -189,7 +189,7 @@ static int x509_create_cert(mbedtls_ecdsa_context *ecdsa, uint8_t *buffer, size_
     mbedtls_x509write_crt_set_version(&ctx, MBEDTLS_X509_CRT_VERSION_3);
     mbedtls_x509write_crt_set_validity(&ctx, "20220901000000", "20720831235959");
     mbedtls_x509write_crt_set_issuer_name(&ctx, "C=ES,O=Pico HSM,CN=Pico FIDO");
-    mbedtls_x509write_crt_set_subject_name(&ctx, "C=ES,O=Pico HSM,CN=Pico FIDO");
+    mbedtls_x509write_crt_set_subject_name(&ctx, "C=ES,O=Pico Keys,OU=Authenticator Attestation,CN=Pico FIDO");
     uint8_t serial[16];
     random_gen(NULL, serial, sizeof(serial));
     mbedtls_x509write_crt_set_serial_raw(&ctx, serial, sizeof(serial));
@@ -410,7 +410,7 @@ int scan_files_fido(void) {
     else {
         printf("FATAL ERROR: KEY DEV not found in memory!\r\n");
     }
-    ef_certdev = search_by_fid(EF_EE_DEV, NULL, SPECIFY_EF);
+    ef_certdev = search_by_fid(EF_EE_DEV_EA, NULL, SPECIFY_EF);
     if (ef_certdev) {
         if (!file_has_data(ef_certdev)) {
             uint8_t cert[2048], outk[32];
