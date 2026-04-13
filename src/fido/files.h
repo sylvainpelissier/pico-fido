@@ -20,7 +20,7 @@
 
 #include "file.h"
 
-#define EF_EE_DEV_EA_2  0xD100
+#define EF_EE_DEV_EA_2  0xCA00
 #define EF_EE_DEV       0xCE00
 #define EF_EE_DEV_EA    0xCE01
 #define EF_KEY_DEV      0xCC00

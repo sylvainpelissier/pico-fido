@@ -588,7 +588,7 @@ int cbor_make_credential(const uint8_t *data, size_t len) {
     }
 
     bool self_attestation = true;
-    if (enterpriseAttestation == 2 || (ka && ka->use_self_attestation == pfalse) || self_attestation) {
+    if (enterpriseAttestation == 2 || (ka && ka->use_self_attestation == pfalse)) {
         mbedtls_ecp_keypair_free(&ekey);
         mbedtls_ecp_keypair_init(&ekey);
         uint8_t key[32] = {0};
@@ -654,9 +654,12 @@ int cbor_make_credential(const uint8_t *data, size_t len) {
             ef_cert = ef_certdev;
         }
         CBOR_CHECK(cbor_encode_text_stringz(&mapEncoder2, "x5c"));
-        CBOR_CHECK(cbor_encoder_create_array(&mapEncoder2, &arrEncoder, 2));
+        int num_certs = file_has_data(ef_cert_2) ? 2 : 1;
+        CBOR_CHECK(cbor_encoder_create_array(&mapEncoder2, &arrEncoder, num_certs));
         CBOR_CHECK(cbor_encode_byte_string(&arrEncoder, file_get_data(ef_cert), file_get_size(ef_cert)));
-        CBOR_CHECK(cbor_encode_byte_string(&arrEncoder, file_get_data(ef_cert_2), file_get_size(ef_cert_2)));
+        if (num_certs == 2) {
+            CBOR_CHECK(cbor_encode_byte_string(&arrEncoder, file_get_data(ef_cert_2), file_get_size(ef_cert_2)));
+        }
         CBOR_CHECK(cbor_encoder_close_container(&mapEncoder2, &arrEncoder));
     }
     CBOR_CHECK(cbor_encoder_close_container(&mapEncoder, &mapEncoder2));
