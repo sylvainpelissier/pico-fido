@@ -587,7 +587,7 @@ int cbor_make_credential(const uint8_t *data, size_t len) {
         ret = mbedtls_md(md, aut_data, aut_data_len + clientDataHash.len, hash);
     }
 
-    bool self_attestation = true;
+    bool self_attestation = false;
     if (enterpriseAttestation == 2 || (ka && ka->use_self_attestation == pfalse)) {
         mbedtls_ecp_keypair_free(&ekey);
         mbedtls_ecp_keypair_init(&ekey);
